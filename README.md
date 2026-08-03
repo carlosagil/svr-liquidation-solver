@@ -22,6 +22,31 @@ not a latency race. Solidity contract + an off-chain Rust client for opportunity
 - **Real on-chain market research before committing any capital** — the actual reason this stayed a
   portfolio project instead of a live deployment (see "Why this didn't go to mainnet").
 
+## How it works
+
+```mermaid
+sequenceDiagram
+    participant Client as solver-client (Rust)
+    participant Aave as Aave V3
+    participant Atlas as Atlas / SVR auction
+    participant Solver as LiquidationSolver.sol
+    participant Pool as BaseSwap pool
+
+    Client->>Aave: scan health factors (watchlist)
+    Aave-->>Client: undercollateralized position found
+    Client->>Client: compute swap quote off-chain
+    Client->>Atlas: submit bid (2s window)
+    Atlas-->>Solver: win auction -> atlasSolverCall
+    Solver->>Solver: pre-flight staleness check
+    Solver->>Aave: liquidate position
+    Solver->>Pool: swap collateral for debt asset
+    Solver->>Atlas: pay bid amount
+    Solver-->>Client: leftover profit
+```
+
+Auctions resolve off-chain in a 2-second window, so the pre-flight check matters: on-chain state
+can drift between when a bid is computed and when the winning transaction actually lands.
+
 ## Status
 
 Contract compiles, both fork tests pass (`forge test`), off-chain client builds and runs a live

@@ -1,0 +1,35 @@
+# svr-liquidation-solver
+
+> A liquidation solver for Aave V3 on Base built against Chainlink SVR (Atlas), a sealed-bid
+> auction mechanism for oracle-extractable-value (OEV) recapture — not a latency race.
+
+Solidity contract (`LiquidationSolver.sol`, inherits Atlas's `SolverBase`) plus an off-chain Rust
+client for opportunity scanning and swap quoting. The contract and its fork tests are real and
+passing against live Base mainnet state (real Aave V3 + real BaseSwap pools, not mocks). Live
+deployment was deliberately not pursued: on-chain research (956 real auction events over ~4.8
+days) showed one solver address already wins 93.4% of liquidations by bidding the practical
+minimum, leaving no realistic edge for a new solo entrant. See README.md for the full narrative,
+including real technical Q&A with Chainlink Labs DevRel on auction mechanics.
+
+## Docs
+- [README.md](README.md): full case study — architecture diagram, what was built and verified,
+  real DevRel answers on the auction window/fees/bonding, and why this stayed a portfolio project
+  instead of a live deployment.
+
+## Code
+- [src/LiquidationSolver.sol](src/LiquidationSolver.sol): on-chain solver contract — swap sizing,
+  pre-flight staleness check, Atlas `SolverBase` integration.
+- [test/LiquidationSolver.t.sol](test/LiquidationSolver.t.sol): Foundry fork tests against live
+  Base mainnet state.
+- [solver-client/src/aave.rs](solver-client/src/aave.rs): Aave health-factor scanning.
+- [solver-client/src/quote.rs](solver-client/src/quote.rs): off-chain swap quoting, matches the
+  on-chain math exactly.
+- [solver-client/src/atlas.rs](solver-client/src/atlas.rs): bid submission — intentionally left
+  `unimplemented!()`, the one piece blocked on unverified protocol-level details.
+
+## Build
+```shell
+forge install foundry-rs/forge-std && forge install FastLane-Labs/atlas
+forge build && forge test   # needs BASE_RPC_URL set, see .env.example
+cd solver-client && cargo build
+```
