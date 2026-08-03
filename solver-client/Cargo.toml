@@ -1,0 +1,19 @@
+[package]
+name = "solver-client"
+version = "0.1.0"
+edition = "2021"
+
+# Separate Cargo workspace from shadow/ (MEV bot) on purpose — see ../README.md:
+# different project, different auction mechanism, different wallet.
+[dependencies]
+# Pinned exactly like shadow/Cargo.toml — newer serde split out serde_core and broke the
+# `serde::__private` API alloy-consensus 0.11.1 still relies on internally.
+serde = "=1.0.217"
+alloy-primitives = "0.8.18"
+alloy-sol-types = "0.8.18"
+alloy-provider = { version = "0.11.1", features = ["reqwest"] }
+alloy-rpc-types = "0.11.1"
+tokio = { version = "1", features = ["full"] }
+eyre = "0.6"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

@@ -1,0 +1,12 @@
+# Foundry
+out/
+cache/
+broadcast/
+lib/
+
+# Rust
+solver-client/target/
+
+# Secrets
+.env
+*.pem
